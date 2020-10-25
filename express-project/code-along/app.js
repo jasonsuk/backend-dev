@@ -1,23 +1,25 @@
 const express = require('express');
+const morgan = require('morgan');
+
+const tourRouter = require('./routes/tourRoutes');
+// const userRouter = require('./routes/userRoutes');
+
 const app = express();
 
-// Local Module from from utli.js
-const {
-    getAllTours,
-    getSingleTour,
-    addTour,
-    updateTour,
-    deleteTour,
-} = require('./utils');
-
+// Middleware @to handle req.body
 app.use(express.json());
 
-app.route('/api/v1/tours').get(getAllTours).post(addTour);
+// Middleware @to maniuplate req object
+app.use((req, res, next) => {
+    req.requestTime = new Date().toISOString();
+    next();
+});
 
-app.route('/api/v1/tours/:id')
-    .get(getSingleTour)
-    .patch(updateTour)
-    .delete(deleteTour);
+// Middleware @logger - morgan (3rd party)
+app.use(morgan('dev'));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`App running on PORT ${PORT}`));
+// Routing - @middleware to mount multiple routes
+app.use('/api/v1/tours', tourRouter);
+// app.use('/api/v1/users', userRouter);
+
+module.exports = app;

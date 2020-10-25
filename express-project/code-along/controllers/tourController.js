@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 // LOAD LOCAL DATA
-const tours = require('./dev-data/data/tours-simple.json');
+const tours = require('../dev-data/data/tours-simple.json');
 const dataFilePath = path.join(
     __dirname,
-    'dev-data',
+    '../dev-data',
     'data',
     'tours-simple.json'
 );
@@ -37,6 +37,7 @@ function remove(id) {
 function getAllTours(req, res) {
     res.status(200).json({
         status: 'success',
+        requestTime: req.requestTime, // middleware
         results: tours.length,
         data: {
             tours,
@@ -54,6 +55,7 @@ function getSingleTour(req, res) {
     if (tour) {
         res.status(200).json({
             status: 'success',
+            requestTime: req.requestTime, // middleware
             data: {
                 tour,
             },

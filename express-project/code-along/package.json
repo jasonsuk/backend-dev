@@ -1,14 +1,15 @@
 {
-  "name": "natours-project",
-  "version": "1.0.0",
-  "description": "Code along to build an api using node, express & mongoDB",
-  "main": "app.js",
-  "scripts": {
-    "dev": "nodemon app.js"
-  },
-  "author": "Junghoon Suk",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.17.1"
-  }
+    "name": "natours-project",
+    "version": "1.0.0",
+    "description": "Code along to build an api using node, express & mongoDB",
+    "main": "app.js",
+    "scripts": {
+        "dev": "nodemon server.js"
+    },
+    "author": "Junghoon Suk",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.17.1",
+        "morgan": "^1.10.0"
+    }
 }
