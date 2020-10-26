@@ -11,6 +11,31 @@ const dataFilePath = path.join(
     'tours-simple.json'
 );
 
+// MIDDLEWARE
+
+// param middleware - only applied to routes with :id
+const checkID = (req, res, next, val) => {
+    console.log(`Checking ID: ${val}`);
+    if (req.params.id * 1 > tours.length) {
+        res.status(404).json({
+            status: 'fail',
+            message: 'No page found',
+        });
+    }
+    next();
+};
+
+// chaining multiple middleware @added to POST
+const checkBody = (req, res, next) => {
+    if (!req.body.name || !req.body.price) {
+        res.status(404).json({
+            status: 'fail',
+            message: 'No name or price data sent',
+        });
+    }
+    next();
+};
+
 // HELPER FUNCTION
 function writeDataToFile(filePath, data) {
     fs.writeFileSync(filePath, JSON.stringify(data), 'utf-8', (err) => {
@@ -51,18 +76,13 @@ function getSingleTour(req, res) {
     const id = req.params.id * 1;
     const tour = tours.find((el) => el.id === id);
 
-    // if (id < tours.length) {}
-    if (tour) {
-        res.status(200).json({
-            status: 'success',
-            requestTime: req.requestTime, // middleware
-            data: {
-                tour,
-            },
-        });
-    } else {
-        res.status(404).json({ message: `No page found with id ${id}` });
-    }
+    res.status(200).json({
+        status: 'success',
+        requestTime: req.requestTime, // middleware
+        data: {
+            tour,
+        },
+    });
 }
 
 // @ POST /api/v1/tours
@@ -82,49 +102,33 @@ function addTour(req, res) {
 }
 
 function updateTour(req, res) {
-    const reqId = req.params.id * 1;
-    const reqTour = tours.find((tour) => tour.id === reqId);
+    const id = req.params.id * 1;
+    const reqTour = tours.find((tour) => tour.id === id);
 
-    if (reqTour) {
-        const reqBody = req.body;
-        const { name, duration, maxGroupSize, difficulty } = reqBody;
+    const { name, duration, maxGroupSize, difficulty } = req.body;
 
-        const newData = {
-            name: name || reqTour.name,
-            duration: duration || reqTour.duration,
-            maxGroupSize: maxGroupSize || reqTour.maxGroupSize,
-            difficulty: difficulty || reqTour.dificulty,
-        };
-
-        const updatedProduct = update(reqId, newData);
-        res.status(200).json({
-            status: 'success',
-            data: {
-                updatedProduct,
-            },
-        });
-    } else {
-        res.status(404).json({
-            msg: 'Page not found',
-        });
-    }
+    const newData = {
+        name: name || reqTour.name,
+        duration: duration || reqTour.duration,
+        maxGroupSize: maxGroupSize || reqTour.maxGroupSize,
+        difficulty: difficulty || reqTour.dificulty,
+    };
+    const updatedProduct = update(id, newData);
+    res.status(200).json({
+        status: 'success',
+        data: {
+            updatedProduct,
+        },
+    });
 }
 
 function deleteTour(req, res) {
-    const delId = req.params.id * 1;
-    const delTour = tours.find((tour) => tour.id === delId);
+    const id = req.params.id * 1;
+    remove(id);
 
-    if (delTour) {
-        remove(delId);
-
-        res.status(204).json({
-            msg: 'Success',
-        });
-    } else {
-        res.status(404).json({
-            msg: 'Page not found',
-        });
-    }
+    res.status(204).json({
+        msg: 'Success',
+    });
 }
 
 module.exports = {
@@ -133,4 +137,6 @@ module.exports = {
     addTour,
     updateTour,
     deleteTour,
+    checkID,
+    checkBody,
 };

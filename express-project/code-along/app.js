@@ -6,17 +6,18 @@ const tourRouter = require('./routes/tourRoutes');
 
 const app = express();
 
-// Middleware @to handle req.body
-app.use(express.json());
+// Middleware
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev')); // @logger - morgan (3rd party)
+}
+// console.log(process.env.NODE_ENV);
 
-// Middleware @to maniuplate req object
+app.use(express.json()); // @to handle req.body
+app.use(express.static(`${__dirname}/public`)); // @ serving static files
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString();
     next();
-});
-
-// Middleware @logger - morgan (3rd party)
-app.use(morgan('dev'));
+}); // @to maniuplate req object
 
 // Routing - @middleware to mount multiple routes
 app.use('/api/v1/tours', tourRouter);
