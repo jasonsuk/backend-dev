@@ -2,3 +2,4 @@ node_modules/
 archives/
 .prettierrc
 .eslintrc.json
+config.env
