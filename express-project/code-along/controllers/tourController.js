@@ -1,105 +1,117 @@
 // LOAD MODULES
+const { findByIdAndDelete } = require('./../models/tourModel');
 const Tour = require('./../models/tourModel');
-
-// MIDDLEWARE
-
-// chaining multiple middleware @added to POST
-const checkBody = (req, res, next) => {
-    if (!req.body.name || !req.body.price) {
-        res.status(404).json({
-            status: 'fail',
-            message: 'No name or price data sent',
-        });
-    }
-    next();
-};
-
-// function update(id, newData) {
-//     const index = tours.findIndex((tour) => tour.id === id);
-//     tours[index] = { id, ...newData };
-//     writeDataToFile(dataFilePath, tours);
-//     return tours[index];
-// }
-
-// function remove(id) {
-//     const updatedData = tours.filter((tour) => tour.id !== id);
-//     writeDataToFile(dataFilePath, updatedData);
-// }
 
 // HTTP REQUESTS
 
 // @ GET /api/v1/tours
 
-function getAllTours(req, res) {
-    res.status(200).json({
-        status: 'success',
-        requestTime: req.requestTime, // middleware
-        // results: tours.length,
-        // data: {
-        //     tours,
-        // },
-    });
+async function getAllTours(req, res) {
+    try {
+        const tours = await Tour.find();
+
+        res.status(200).json({
+            status: 'success',
+            requestTime: req.requestTime,
+            results: tours.length,
+            data: {
+                tours,
+            },
+        });
+    } catch (err) {
+        // 404 not found
+        res.status(404).json({
+            status: 'fail',
+            message: err,
+        });
+    }
 }
 
 // @ GET /api/v1/tours/:id
 
-function getSingleTour(req, res) {
-    const id = req.params.id * 1;
-    // const tour = tours.find((el) => el.id === id);
+async function getSingleTour(req, res) {
+    try {
+        const tour = await Tour.findById(req.params.id);
+        // Tour.findOne({ id: req.params.id })
 
-    res.status(200).json({
-        status: 'success',
-        requestTime: req.requestTime, // middleware
-        // data: {
-        //     tour,
-        // },
-    });
+        res.status(200).json({
+            status: 'success',
+            requestTime: req.requestTime,
+            data: {
+                tour,
+            },
+        });
+    } catch (err) {
+        res.status(404).json({
+            status: 'fail',
+            message: err.length > 0 ? err : 'Possibly invalid id requested',
+        });
+    }
 }
 
 // @ POST /api/v1/tours
 
-function addTour(req, res) {
-    // const newId = tours[tours.length - 1].id + 1;
-    // const newTour = Object.assign({ id: newId }, req.body);
-    // tours.push(newTour);
+async function addTour(req, res) {
+    try {
+        // const newTour = new Tour({req.body});
+        // newTour.save();
 
-    // writeDataToFile(dataFilePath, tours);
-    res.status(201).json({
-        status: 'success',
-        // data: {
-        //     tour: newTour,
-        // },
-    });
+        const newTour = await Tour.create(req.body);
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                tour: newTour,
+            },
+        });
+    } catch (err) {
+        // 400 bad request
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
 }
 
-function updateTour(req, res) {
-    // const id = req.params.id * 1;
-    // const reqTour = tours.find((tour) => tour.id === id);
+async function updateTour(req, res) {
+    try {
+        const productToUpdate = await Tour.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true,
+            }
+        );
 
-    // const { name, price, maxGroupSize, difficulty } = req.body;
-
-    // const newData = {
-    //     name: name || reqTour.name,
-    //     duration: duration || reqTour.duration,
-    //     maxGroupSize: maxGroupSize || reqTour.maxGroupSize,
-    //     difficulty: difficulty || reqTour.dificulty,
-    // };
-    // const updatedProduct = update(id, newData);
-    res.status(204).json({
-        status: 'success',
-        // data: {
-        //     updatedProduct,
-        // },
-    });
+        res.status(200).json({
+            status: 'success',
+            data: {
+                productToUpdate,
+            },
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
 }
 
-function deleteTour(req, res) {
-    // const id = req.params.id * 1;
-    remove(id);
+async function deleteTour(req, res) {
+    try {
+        const productToDelete = await Tour.findByIdAndDelete(req.params.id);
 
-    res.status(204).json({
-        status: 'Success',
-    });
+        res.status(200).json({
+            status: 'success',
+            data: null,
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
 }
 
 module.exports = {
@@ -108,5 +120,4 @@ module.exports = {
     addTour,
     updateTour,
     deleteTour,
-    checkBody,
 };

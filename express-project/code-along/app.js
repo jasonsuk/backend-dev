@@ -15,9 +15,9 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json()); // @to handle req.body
 app.use(express.static(`${__dirname}/public`)); // @ serving static files
 app.use((req, res, next) => {
-    req.requestTime = new Date().toISOString();
+    req.requestTime = new Date().toISOString(); // @to maniuplate req object
     next();
-}); // @to maniuplate req object
+});
 
 // Routing - @middleware to mount multiple routes
 app.use('/api/v1/tours', tourRouter);

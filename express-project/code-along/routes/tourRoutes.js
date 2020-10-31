@@ -9,12 +9,9 @@ const {
     addTour,
     updateTour,
     deleteTour,
-    checkBody,
 } = require('../controllers/tourController');
 
-// router.param('id', checkID);
-
-router.route('/').get(getAllTours).post(checkBody, addTour);
+router.route('/').get(getAllTours).post(addTour);
 router.route('/:id').get(getSingleTour).patch(updateTour).delete(deleteTour);
 
 module.exports = router;
