@@ -90,6 +90,8 @@ async function addTour(req, res) {
     }
 }
 
+// @ PATCH /api/v1/tours/:id
+
 async function updateTour(req, res) {
     try {
         const productToUpdate = await Tour.findByIdAndUpdate(
@@ -115,6 +117,8 @@ async function updateTour(req, res) {
     }
 }
 
+// @ DELETE /api/v1/tours/:id
+
 async function deleteTour(req, res) {
     try {
         const productToDelete = await Tour.findByIdAndDelete(req.params.id);
@@ -131,6 +135,97 @@ async function deleteTour(req, res) {
     }
 }
 
+// FOR AGGREGATION ROUTES
+async function getTourStats(req, res) {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } }, // default
+            },
+            {
+                $group: {
+                    // _id: null, // load all
+                    _id: { $toUpper: '$difficulty' },
+                    numTours: { $sum: 1 },
+                    avgRatings: { $avg: '$ratingsAverage' },
+                    avgDuration: { $avg: '$duration' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' },
+                },
+            },
+            {
+                $sort: { avgPrice: 1 },
+            },
+            // {
+            //     $match: { _id: { $ne: '$EASY' } },
+            // },
+        ]);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                stats,
+            },
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
+}
+
+// GET @ /api/v1/tours/monthly-stats/:year
+
+async function getMonthlyTourStats(req, res) {
+    try {
+        const year = req.params.year * 1;
+
+        const monthlyStats = await Tour.aggregate([
+            {
+                $unwind: '$startDates',
+            },
+            {
+                $match: {
+                    startDates: {
+                        $gte: new Date(`${year}-01-01`),
+                        $lte: new Date(`${year}-12-31`),
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: { $month: '$startDates' },
+                    numToursStart: { $sum: 1 },
+                    tours: { $push: '$name' },
+                },
+            },
+            {
+                $addFields: { month: '$_id' },
+            },
+            {
+                $project: { _id: 0 },
+            },
+            {
+                $sort: { month: 1 },
+            },
+        ]);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                monthlyStats,
+            },
+        });
+    } catch (err) {
+        res.status(400).json({
+            status: 'fail',
+            message: err,
+        });
+    }
+}
+
 module.exports = {
     sortTop5Tours,
     getAllTours,
@@ -138,4 +233,6 @@ module.exports = {
     addTour,
     updateTour,
     deleteTour,
+    getTourStats,
+    getMonthlyTourStats,
 };
