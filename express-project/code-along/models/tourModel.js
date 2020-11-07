@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const validator = require('validator');
 
 // SCHEMA
 const tourSchema = new mongoose.Schema(
@@ -14,6 +15,12 @@ const tourSchema = new mongoose.Schema(
             required: [true, 'A tour must have a name'],
             unique: true,
             trim: true,
+            minlength: [5, 'A tour name must have at least 5 letters'],
+            maxlength: [40, 'A tour name cannot exceed more than 40 letters'],
+            validate: [
+                validator.isAlphanumeric,
+                'A tour must contain alphabet letter or numbers only',
+            ],
         },
         slug: String,
         duration: {
@@ -27,10 +34,17 @@ const tourSchema = new mongoose.Schema(
         difficulty: {
             type: String,
             required: [true, 'A tour must have a difficulty'],
+            enum: {
+                values: ['easy', 'medium', 'difficulty', 'none'],
+                message:
+                    'Difficulty is either: easy, medium or difficulty. "none" is for the testing only',
+            },
         },
         ratingsAverage: {
             type: Number,
             default: 4.5,
+            min: [0, 'Rating must range between 0 and 5, inclusive'],
+            max: [5, 'Rating must range between 0 and 5, inclusive'],
         },
         ratingsQuantity: {
             type: Number,
@@ -40,7 +54,16 @@ const tourSchema = new mongoose.Schema(
             type: Number,
             required: [true, 'A tour must have a price'],
         },
-        priceDiscount: Number,
+        priceDiscount: {
+            type: Number,
+            validate: {
+                validator: function (val) {
+                    // 'this' points to the newly created document only - not applicable to document to update
+                    return val < this.price;
+                },
+                message: `Discounted Price {VALUE} must be less than the original price.`,
+            },
+        },
         summary: {
             type: String,
             trim: true,
