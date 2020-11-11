@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { default: validator } = require('validator');
+// const { default: validator } = require('validator');
 
 const tourSchema = new mongoose.Schema({
   name: {
@@ -8,6 +8,7 @@ const tourSchema = new mongoose.Schema({
       true,
       'Please specify the name. Length must be within 5 - 40 letters.',
     ],
+    trim: true,
     unique: true,
     minlength: 5,
     maxlength: 40,
