@@ -39,7 +39,7 @@ async function getAllTours(req, res) {
         // 404 not found
         res.status(404).json({
             status: 'fail',
-            message: err,
+            message: `${err}`,
         });
     }
 }
@@ -85,7 +85,7 @@ async function addTour(req, res) {
         // 400 bad request
         res.status(400).json({
             status: 'fail',
-            message: err,
+            message: `${err}`,
         });
     }
 }
@@ -112,7 +112,7 @@ async function updateTour(req, res) {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: err,
+            message: `${err}`,
         });
     }
 }
@@ -130,7 +130,7 @@ async function deleteTour(req, res) {
     } catch (err) {
         res.status(400).json({
             status: 'fail',
-            message: err,
+            message: `${err}`,
         });
     }
 }
