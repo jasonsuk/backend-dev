@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv'); // process.env - environment variable
 const morgan = require('morgan'); // logger middleware
 const colors = require('colors'); // style console log (https://github.com/marak/colors.js/)
+const errorHandler = require('./middleware/errorHandler');
 
 const connectDB = require('./config/db');
 
@@ -30,11 +31,14 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/bootcamps', bootcamps);
 
+// Error handler - must be written after routes
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 5500;
 const server = app.listen(PORT, () =>
     console.log(
-        `Server running in ${process.env.NODE_ENV} mode on PORT ${PORT}`.yellow
-            .bold
+        `Server running in ${process.env.NODE_ENV} mode on PORT ${PORT}`
+            .bgYellow.black
     )
 );
 
