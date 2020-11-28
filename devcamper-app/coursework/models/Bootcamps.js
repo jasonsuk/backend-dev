@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const geocoder = require('../utils/geocoder');
+const slugify = require('slugify');
 
 // Side note:
 // models filename conventionally start with capital letter
@@ -99,6 +101,34 @@ const BootcampSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+});
+
+// Mongoose middleware : no arrow function!
+// Create slug from the document (Bootcamp) name - document mw
+BootcampSchema.pre('save', function (next) {
+    this.slug = slugify(this.name, { lower: true });
+    next();
+});
+
+// Dissecting address into location field : node-geocoder & MapQuest API
+BootcampSchema.pre('save', async function (next) {
+    // Using callback
+    const loc = await geocoder.geocode(this.address);
+    // console.log(loc);
+    this.location = {
+        type: 'Point',
+        coordinates: [loc[0].longtitude, loc[0].latitude], // following [longitude, latitude] format
+        formattedAddress: loc[0].formattedAddress,
+        street: loc[0].streetName,
+        city: loc[0].city,
+        state: loc[0].stateCode,
+        zipcode: loc[0].zipcode,
+        country: loc[0].countryCode,
+    };
+
+    // Do not save address in DB
+    this.address = undefined;
+    next();
 });
 
 // Exporting the model (model in lowercase!)

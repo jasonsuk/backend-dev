@@ -20,14 +20,14 @@ const errorHandler = (err, req, res, next) => {
     // Mongoose duplicated keys
     if (err.code === 11000) {
         const message = 'Duplicated id requested';
-        error = new errorResponse(message, 404);
+        error = new errorResponse(message, 400);
     }
 
     // Mongoose validation errors
     if (err.name === 'ValidationError') {
         // Use the existing validation error messages
         const message = Object.values(err.errors).map((val) => val.message);
-        error = new errorResponse(message, 404);
+        error = new errorResponse(message, 400);
     }
 
     res.status(error.statusCode || 500).json({
