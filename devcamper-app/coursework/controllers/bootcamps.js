@@ -1,5 +1,6 @@
 const asyncHandler = require('../middleware/async');
 const errorResponse = require('../utils/errorResponse');
+const geocoder = require('../utils/geocoder');
 
 // Loading Bootcamp model
 const Bootcamp = require('../models/Bootcamps');
@@ -99,5 +100,38 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
         success: true,
         requestTime: req.requestTime,
         data: {},
+    });
+});
+
+// @desc        Get bootcamps within radius of input zipcode
+// @route       GET /api/v1/bootcamps/:zipcode/:distance
+// @access      Public
+// @Reference    https://docs.mongodb.com/manual/reference/operator/query/centerSphere/
+
+exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
+    const { zipcode, distance } = req.params;
+
+    const loc = await geocoder.geocode(zipcode);
+    const lng = loc[0].longitude;
+    const lat = loc[0].latitude;
+
+    // Convert distance to radians
+    // The equatorial radius of the Earth is approximately 3,963.2 miles or 6,378.1 kilometers.
+    // Unit of distance and radius is miles here as we are exploring bootcamps in US
+    const radius = distance / 3963.2;
+
+    console.log(lng, lat, radius);
+
+    const bootcamps = await Bootcamp.find({
+        location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
+    });
+
+    console.log(bootcamps);
+
+    res.status(200).json({
+        success: true,
+        length: bootcamps.length,
+        requestTime: req.requestTime,
+        data: bootcamps,
     });
 });

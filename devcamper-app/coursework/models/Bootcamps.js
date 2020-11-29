@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const geocoder = require('../utils/geocoder');
 const slugify = require('slugify');
+const geocoder = require('../utils/geocoder');
 
 // Side note:
 // models filename conventionally start with capital letter

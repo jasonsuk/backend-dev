@@ -1,7 +1,7 @@
 const NodeGeocoder = require('node-geocoder');
 
 const options = {
-    provider: process.env.GEOCODER_PROVIDER, // google,...
+    provider: process.env.GEOCODER_PROVIDER, // i.e. google,...
 
     // Optional depending on the providers
     // fetch: customFetchImplementation, // http adapter has been depreciated
