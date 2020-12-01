@@ -14,6 +14,7 @@ connectDB();
 
 // Load routes
 const bootcamps = require('./routes/bootcamps');
+const courses = require('./routes/courses');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/v1/bootcamps', bootcamps);
+app.use('/api/v1/courses', courses);
 
 // Error handler - must be written after routes
 app.use(errorHandler);

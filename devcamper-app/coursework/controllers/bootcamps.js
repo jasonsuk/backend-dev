@@ -13,7 +13,7 @@ exports.getAllBootcamps = asyncHandler(async (req, res, next) => {
     //     const bootcamps = await Bootcamp.find();
     //     res.status(200).json({
     //         success: true,
-    //         length: bootcamps.length,
+    //          count: bootcamps.length,
     //         requestTime: req.requestTime,
     //         data: bootcamps,
     //     });
@@ -42,7 +42,7 @@ exports.getAllBootcamps = asyncHandler(async (req, res, next) => {
         (match) => `$${match}`
     );
 
-    query = Bootcamp.find(JSON.parse(queryStr));
+    query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
 
     // Select fields
     // @ /api/v1/bootcamps?select=name,location.state,averageCost
@@ -92,7 +92,7 @@ exports.getAllBootcamps = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        length: bootcamps.length,
+        count: bootcamps.length,
         requestTime: req.requestTime,
         pagination,
         data: bootcamps,
@@ -155,12 +155,15 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
 // @route       GET /api/v1/bootcamps/:id
 // @access      Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+    const bootcamp = await Bootcamp.findById(req.params.id);
     if (!bootcamp) {
         return next(
             new errorResponse(`No bootcamp found for id ${req.params.id}`, 404)
         );
     }
+
+    // Trigger mongoose middleware
+    bootcamp.remove();
 
     res.status(200).json({
         success: true,
@@ -186,17 +189,17 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
     // Unit of distance and radius is miles here as we are exploring bootcamps in US
     const radius = distance / 3963.2;
 
-    console.log(lng, lat, radius);
+    // console.log(lng, lat, radius);
 
     const bootcamps = await Bootcamp.find({
         location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
     });
 
-    console.log(bootcamps);
+    // console.log(bootcamps);
 
     res.status(200).json({
         success: true,
-        length: bootcamps.length,
+        count: bootcamps.length,
         requestTime: ßeq.requestTime,
         data: bootcamps,
     });
