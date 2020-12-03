@@ -38,4 +38,42 @@ const CourseSchema = new mongoose.Schema({
     },
 });
 
+// Mongoose statics to get average tuition cost of courses
+CourseSchema.statics.getAverageCost = async function (bootcampId) {
+    console.log('Calculating the average cost...'.blue);
+
+    const agg = await this.aggregate([
+        {
+            $match: { bootcamp: bootcampId },
+        },
+        {
+            $group: {
+                _id: '$bootcamp',
+                averageCost: { $avg: '$tuition' },
+            },
+        },
+    ]);
+
+    // agg returns an array of objects in it
+    // i.e. [ { _id: 5d713995b721c3bb38c1f5d0, averageCost: 9600 } ]
+
+    try {
+        await this.model('Bootcamp').findByIdAndUpdate(bootcampId, {
+            averageCost: Math.ceil(agg[0].averageCost / 10) * 10,
+        });
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+// Call averageCost after save
+CourseSchema.post('save', function () {
+    this.constructor.getAverageCost(this.bootcamp);
+});
+
+// Update averageCost when bootcamp(so then related course) deleted
+CourseSchema.pre('delete', function () {
+    this.constructor.getAverageCost(this.bootcamp);
+});
+
 module.exports = mongoose.model('Course', CourseSchema);
