@@ -9,26 +9,18 @@ const Bootcamp = require('../models/Bootcamps');
 // @route       GET /api/v1/bootcamp/:id/courses
 // @access      Public
 exports.getCourses = asyncHandler(async (req, res, next) => {
-    let query;
-
     if (req.params.id) {
-        query = Course.find({ bootcamp: req.params.id });
+        const courses = await Course.find({ bootcamp: req.params.id });
+        res.status(200).json({
+            sucess: true,
+            count: courses.length,
+            requestTime: req.requestTime,
+            data: courses,
+        });
     } else {
         // Find all courses and expand bootcamp field
-        query = Course.find().populate({
-            path: 'bootcamp',
-            select: 'name description',
-        });
+        res.status(200).json(res.advancedQueryResults);
     }
-
-    const courses = await query;
-
-    res.status(200).json({
-        success: true,
-        count: courses.length,
-        requestTime: req.requestTime,
-        data: courses,
-    });
 });
 
 // @desc        Get a single course

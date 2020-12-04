@@ -32,7 +32,7 @@ app.use((req, res, next) => {
     next();
 });
 
-// Fileupload third party module
+// Fileupload third party middleware
 app.use(fileupload());
 
 // Access files on browsers - static route to public folder
