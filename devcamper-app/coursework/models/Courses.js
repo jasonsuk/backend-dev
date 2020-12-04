@@ -72,7 +72,7 @@ CourseSchema.post('save', function () {
 });
 
 // Update averageCost when bootcamp(so then related course) deleted
-CourseSchema.pre('delete', function () {
+CourseSchema.pre('remove', function () {
     this.constructor.getAverageCost(this.bootcamp);
 });
 

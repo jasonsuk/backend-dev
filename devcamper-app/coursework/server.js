@@ -1,5 +1,7 @@
 const express = require('express');
+const path = require('path');
 const dotenv = require('dotenv'); // process.env - environment variable
+const fileupload = require('express-fileupload');
 const morgan = require('morgan'); // logger middleware
 const colors = require('colors'); // style console log (https://github.com/marak/colors.js/)
 const errorHandler = require('./middleware/errorHandler');
@@ -30,6 +32,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Fileupload third party module
+app.use(fileupload());
+
+// Access files on browsers - static route to public folder
+app.use(express.static(path.join(__dirname, '/public')));
+
+// Routes
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
 
