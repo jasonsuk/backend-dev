@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const userSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a user name'],
@@ -24,6 +25,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         minlength: 6,
+        select: false, // when getting User from api, it will not show password
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
@@ -39,15 +41,28 @@ const userSchema = new mongoose.Schema({
 });
 
 // Encype a password before save : react to @POST
-userSchema.pre('save', async function (next) {
+//
+UserSchema.pre('save', async function (next) {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
-
     // await bcrypt.genSalt(10, async (err, salt) => {
     //     this.password = await bcrypt.hash(this.password, salt);
     // });
-
     next();
 });
 
-module.exports = mongoose.model('User', userSchema);
+// Sign JWT and return
+// methods for a function to be called on an instance of model
+UserSchema.methods.getJwtToken = function () {
+    const token = jwt.sign({ id: this._id }, 'secrectKey', {
+        expiresIn: '30d',
+    });
+    return token;
+};
+
+// Validate if the input password matches with the password of a specific user instance in db
+UserSchema.methods.matchPassword = async function (inputPassword) {
+    return await bcrypt.compare(inputPassword, this.password);
+};
+
+module.exports = mongoose.model('User', UserSchema);
