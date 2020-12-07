@@ -8,7 +8,8 @@ const {
     getBootcampsInRadius,
     uploadPhoto,
 } = require('../controllers/bootcamps');
-const { route } = require('./courses');
+
+const { protect, authorize } = require('../middleware/auth');
 
 const Bootcamp = require('../models/Bootcamps');
 const advancedQuery = require('../middleware/advancedQuery');
@@ -32,13 +33,13 @@ router.route('/radius/:zipcode/:distance').get(getBootcampsInRadius);
 router
     .route('/')
     .get(advancedQuery(Bootcamp, 'courses'), getAllBootcamps)
-    .post(createBootcamp);
+    .post(protect, authorize('publisher', 'admin'), createBootcamp);
 
 // @ api/v1/bootcamps/:id
 router
     .route('/:id')
     .get(getSingleBootcamp)
-    .put(updateBootcamp)
-    .delete(deleteBootcamp);
+    .put(protect, authorize('publisher', 'admin'), updateBootcamp)
+    .delete(protect, authorize('publisher', 'admin'), deleteBootcamp);
 
 module.exports = router;

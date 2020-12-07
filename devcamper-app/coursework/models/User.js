@@ -54,8 +54,8 @@ UserSchema.pre('save', async function (next) {
 // Sign JWT and return
 // methods for a function to be called on an instance of model
 UserSchema.methods.getJwtToken = function () {
-    const token = jwt.sign({ id: this._id }, 'secrectKey', {
-        expiresIn: '30d',
+    const token = jwt.sign({ id: this._id }, process.env.JWT_SECRET_KEY, {
+        expiresIn: process.env.JWT_EXPIRE,
     });
     return token;
 };
