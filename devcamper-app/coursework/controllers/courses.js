@@ -50,6 +50,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
     // Set a value of Course model's bootcamp field with the requested bootcamp id
     // Thus, there is no need to specify bootcamp field in req.body
     req.body.bootcamp = req.params.id;
+    req.body.user = req.user.id;
 
     const bootcamp = await Bootcamp.findById(req.params.id);
 
@@ -58,6 +59,15 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
             new errorResponse(
                 `No bootcamp found for the id of ${req.params.id}`,
                 404
+            )
+        );
+    }
+
+    if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(
+            new errorResponse(
+                `User with id of ${req.user.id} is not authorized to access the bootcamp ${bootcamp._id}`,
+                401
             )
         );
     }
@@ -78,9 +88,20 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
     let course = await Course.findById(req.params.id);
 
     if (!course) {
-        return new errorResponse(
-            `No course found for the id of ${req.params.id}`,
-            404
+        return next(
+            new errorResponse(
+                `No course found for the id of ${req.params.id}`,
+                404
+            )
+        );
+    }
+
+    if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(
+            new errorResponse(
+                `User with id of ${req.user.id} is not authorized to access the course`,
+                401
+            )
         );
     }
 
@@ -103,9 +124,20 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
     let course = await Course.findById(req.params.id);
 
     if (!course) {
-        return new errorResponse(
-            `No course found for the id ${req.params.id}`,
-            404
+        return next(
+            new errorResponse(
+                `No course found for the id ${req.params.id}`,
+                404
+            )
+        );
+    }
+
+    if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(
+            new errorResponse(
+                `User with id of ${req.user.id} is not authorized to access the course`,
+                401
+            )
         );
     }
 
