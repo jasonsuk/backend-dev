@@ -1,9 +1,10 @@
 const asyncHandler = require('../middleware/async');
 const errorResponse = require('../utils/errorResponse');
+const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User');
 
 // @desc        Register user
-// @route       POST /api/v1/register
+// @route       POST /api/v1/auth/register
 // @access      Public
 exports.register = asyncHandler(async (req, res, next) => {
     // Destructure the required fields
@@ -29,7 +30,7 @@ exports.register = asyncHandler(async (req, res, next) => {
 });
 
 // @desc        Signin user
-// @route       POST /api/v1/signin
+// @route       POST /api/v1/auth/signin
 // @access      Public
 exports.signin = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
@@ -68,6 +69,62 @@ exports.signin = asyncHandler(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
+// @desc        Get signed in user
+// @route       GET /api/v1/auth/whoisme
+// @access      Public
+// @annecdote   find user by req.user.id (assigned for protect middleware)
+exports.whoisme = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.user.id); // req.user object @ proect middleware auth.js
+
+    res.status(200).json({
+        success: true,
+        data: user,
+    });
+});
+
+// @desc        Forgot password
+// @route       POST /api/v1/auth/forgotPassword
+// @access      Public
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+    // Gets email in req.body
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+        return next(new errorResponse('There is no user with the email'), 404); // Not found
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send email with message (resetUrl w/ token attached)
+    // Create reset url
+    const resetUrl = `${req.protocol}://${req.get(
+        'host'
+    )}/api/v1/resetPassword/${resetToken}`;
+
+    // If frontend, there may be a link to frontend page for password retrieval
+    const text = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to:\n\n${resetUrl}`;
+
+    try {
+        await sendEmail({
+            // options
+            email: user.email,
+            subject: 'Password reset token',
+            text,
+        });
+        res.status(200).json({ success: true, data: 'Email sent' });
+    } catch (error) {
+        console.error(err);
+
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new errorResponse('Email could not be sent'), 500);
+    }
+});
+
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
     // Create token for user data
@@ -91,16 +148,3 @@ const sendTokenResponse = (user, statusCode, res) => {
         token,
     });
 };
-
-// @desc        Get signed in user
-// @route       GET /api/v1/whoisme
-// @access      Private
-// @annecdote   find user by req.user.id (assigned for protect middleware)
-exports.whoisme = asyncHandler(async (req, res, next) => {
-    const user = await User.findById(req.user.id); // req.user object @ proect middleware auth.js
-
-    res.status(200).json({
-        success: true,
-        data: user,
-    });
-});
