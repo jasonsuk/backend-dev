@@ -3,6 +3,7 @@ const asyncHandler = require('../middleware/async');
 const errorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User');
+const ErrorResponse = require('../utils/errorResponse');
 
 // @desc        Register user
 // @route       POST /api/v1/auth/register
@@ -54,7 +55,7 @@ exports.signin = asyncHandler(async (req, res, next) => {
 
     // Check password - match with the data in db
     // UserSchema.methods.matchPassword onto 'user' instance
-    const isPasswordMatched = user.matchPassword(password); // returns boolean
+    const isPasswordMatched = await user.matchPassword(password); // returns boolean
     if (!isPasswordMatched) {
         return next(new errorResponse('No credentials found'), 401); // 401 unauthorized
     }
@@ -83,6 +84,50 @@ exports.whoisme = asyncHandler(async (req, res, next) => {
     });
 });
 
+// @desc        Update user details (name, email only)
+// @route       PUT /api/v1/auth/updateuserdetails
+// @access      Private (via protect middelware)
+exports.updateDetails = asyncHandler(async (req, res, next) => {
+    // Only name and email can be changed (= no access to password and role)
+    const fieldsToChange = {
+        name: req.body.name,
+        email: req.body.email,
+    };
+
+    const user = await User.findByIdAndUpdate(req.user.id, fieldsToChange, {
+        new: true,
+        runValidators: true,
+    });
+
+    res.status(200).json({
+        success: true,
+        data: user,
+    });
+});
+
+// @desc        Update password
+// @route       PUT /api/v1/auth/updatepassword
+// @access      Private (via protect middelware)
+exports.updatePassword = asyncHandler(async (req, res, next) => {
+    // req.body = { "currentPassword": 123456, "newPassword": 1234567 }
+
+    const user = await User.findById(req.user.id).select('+password');
+
+    // No need to validate user as user has logged in
+    // Check if input current password matches
+    const isPasswordMatch = await user.matchPassword(req.body.currentPassword);
+    console.log(isPasswordMatch);
+    if (!isPasswordMatch) {
+        return next(new ErrorResponse('Password do not match'), 401);
+    }
+
+    // Change password and save it
+    user.password = req.body.newPassword;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+});
+
 // @desc        Forgot password
 // @route       POST /api/v1/auth/forgotPassword
 // @access      Public
@@ -102,7 +147,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     // Create reset url
     const resetUrl = `${req.protocol}://${req.get(
         'host'
-    )}/api/v1/auth/resetPassword/${resetToken}`;
+    )}/api/v1/auth/resetpassword/${resetToken}`;
 
     // If frontend, there may be a link to frontend page for password retrieval
     const text = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to:\n\n${resetUrl}`;
