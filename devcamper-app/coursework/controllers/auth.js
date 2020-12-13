@@ -74,7 +74,7 @@ exports.signin = asyncHandler(async (req, res, next) => {
 // @desc        Get signed in user
 // @route       GET /api/v1/auth/whoisme
 // @access      Public
-// @annecdote   find user by req.user.id (assigned for protect middleware)
+// @remark      Find user by req.user.id (assigned for protect middleware)
 exports.whoisme = asyncHandler(async (req, res, next) => {
     const user = await User.findById(req.user.id); // req.user object @ proect middleware auth.js
 
