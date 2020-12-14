@@ -116,7 +116,7 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
     // No need to validate user as user has logged in
     // Check if input current password matches
     const isPasswordMatch = await user.matchPassword(req.body.currentPassword);
-    console.log(isPasswordMatch);
+
     if (!isPasswordMatch) {
         return next(new ErrorResponse('Password do not match'), 401);
     }

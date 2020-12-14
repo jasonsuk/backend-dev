@@ -14,7 +14,7 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
         res.status(200).json({
             sucess: true,
             count: courses.length,
-            requestTime: req.requestTime,
+            requestedAt: req.reqestTime,
             data: courses,
         });
     } else {
@@ -38,7 +38,7 @@ exports.getSingleCourse = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        requestTime: req.requestTime,
+        requestedAt: req.reqestTime,
         data: course,
     });
 });
@@ -76,7 +76,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        requestTime: req.requestTime,
+        requestedAt: req.reqestTime,
         data: course,
     });
 });
@@ -112,7 +112,7 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        requestTime: req.requestTime,
+        requestedAt: req.reqestTime,
         data: course,
     });
 });
@@ -146,7 +146,7 @@ exports.deleteCourse = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        requestTime: req.requestTime,
+        requestedAt: req.reqestTime,
         data: {},
     });
 });
