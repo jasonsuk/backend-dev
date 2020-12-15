@@ -1,9 +1,8 @@
 const crypto = require('crypto');
 const asyncHandler = require('../middleware/async');
-const errorResponse = require('../utils/errorResponse');
+const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
 const User = require('../models/User');
-const ErrorResponse = require('../utils/errorResponse');
 
 // @desc        Register user
 // @route       POST /api/v1/auth/register
@@ -31,16 +30,16 @@ exports.register = asyncHandler(async (req, res, next) => {
     sendTokenResponse(user, 200, res);
 });
 
-// @desc        Signin user
-// @route       POST /api/v1/auth/signin
+// @desc        Log in user
+// @route       POST /api/v1/auth/login
 // @access      Public
-exports.signin = asyncHandler(async (req, res, next) => {
+exports.login = asyncHandler(async (req, res, next) => {
     const { email, password } = req.body;
 
     // Validate email and password - no mongoose validation
     if (!email || !password) {
         return next(
-            new errorResponse('Please enter an email and a password'),
+            new ErrorResponse('Please enter an email and a password'),
             400
         );
     }
@@ -50,14 +49,14 @@ exports.signin = asyncHandler(async (req, res, next) => {
 
     // See if database hold the input data
     if (!user) {
-        return next(new errorResponse('No credentials found'), 401); // 401 unauthorized
+        return next(new ErrorResponse('No credentials found'), 401); // 401 unauthorized
     }
 
     // Check password - match with the data in db
     // UserSchema.methods.matchPassword onto 'user' instance
     const isPasswordMatched = await user.matchPassword(password); // returns boolean
     if (!isPasswordMatched) {
-        return next(new errorResponse('No credentials found'), 401); // 401 unauthorized
+        return next(new ErrorResponse('No credentials found'), 401); // 401 unauthorized
     }
 
     // // Create token for user data
@@ -70,6 +69,26 @@ exports.signin = asyncHandler(async (req, res, next) => {
     // });
     sendTokenResponse(user, 200, res);
 });
+
+// @desc        Log user out & clear token cookie
+// @route       GET /api/v1/auth/logout
+// @access      Public
+exports.logout = asyncHandler(async (req, res, next) => {
+    // Set token to none
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10 * 60 * 1000),
+        httpOnly: true,
+    });
+
+    res.status(200).json({
+        success: true,
+        data: {},
+    });
+});
+
+// @desc        Get signed in user
+// @route       GET /api/v1/auth/whoisme
+// @access      Public
 
 // @desc        Get signed in user
 // @route       GET /api/v1/auth/whoisme
@@ -136,7 +155,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-        return next(new errorResponse('There is no user with the email'), 404); // Not found
+        return next(new ErrorResponse('There is no user with the email'), 404); // Not found
     }
 
     // Get reset token
@@ -167,7 +186,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
         user.resetPasswordExpire = undefined;
         await user.save({ validateBeforeSave: false });
 
-        return next(new errorResponse('Email could not be sent'), 500);
+        return next(new ErrorResponse('Email could not be sent'), 500);
     }
 });
 
@@ -190,7 +209,7 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
     });
 
     if (!user) {
-        return next(new errorResponse('Invalid token'), 400);
+        return next(new ErrorResponse('Invalid token'), 400);
     }
 
     // Get new password if reset token matched + not expired,
@@ -216,7 +235,7 @@ const sendTokenResponse = (user, statusCode, res) => {
         httpOnly: true,
     };
 
-    if ((process.env.NODE_ENV = 'production')) {
+    if (process.env.NODE_ENV === 'production') {
         options.secure = true;
     }
 

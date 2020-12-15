@@ -1,7 +1,8 @@
 const express = require('express');
 const {
     register,
-    signin,
+    login,
+    logout,
     whoisme,
     updateDetails,
     updatePassword,
@@ -14,7 +15,8 @@ const { protect } = require('../middleware/auth');
 const router = express.Router();
 
 router.route('/register').post(register);
-router.route('/signin').post(signin);
+router.route('/login').post(login);
+router.route('/logout').get(logout);
 router.route('/whoisme').get(protect, whoisme); // gets req.user from protect middleware
 router.route('/updateuserdetails').put(protect, updateDetails);
 router.route('/updatepassword').put(protect, updatePassword);

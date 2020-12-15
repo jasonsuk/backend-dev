@@ -14,14 +14,20 @@ exports.protect = asyncHandler(async (req, res, next) => {
         req.headers.authorization &&
         req.headers.authorization.startsWith('Bearer') // Check the correct format
     ) {
+        // Get token from Bearer token in header
         token = req.headers.authorization.split(' ')[1];
     }
     // Assign to token if exists from cookies
-    // else if(req.cookies) {
-    //     token = req.cookies.token
-    // }
-    else {
-        next(new ErrorResponse('Not authorized to access the route'), 401);
+    // Get token from cooikie
+    else if (req.cookies.token) {
+        token = req.cookies.token;
+    }
+
+    if (!token) {
+        return next(
+            new ErrorResponse('Not authorized to access the route'),
+            401
+        );
     }
 
     // Decode and verify token

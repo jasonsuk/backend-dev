@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // logger middleware
 const colors = require('colors'); // style console log (https://github.com/marak/colors.js/)
 const errorHandler = require('./middleware/errorHandler');
+const mongoSanitize = require('express-mongo-sanitize');
 
 const connectDB = require('./config/db');
 
@@ -41,6 +42,9 @@ app.use(fileupload());
 
 // Cookie parser third party middleware
 app.use(cookieParser());
+
+// Sanitize data (prevent noSQL injection)
+app.use(mongoSanitize());
 
 // Access files on browsers - static route to public folder
 app.use(express.static(path.join(__dirname, '/public')));
