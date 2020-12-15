@@ -10,6 +10,8 @@ const {
     getReviews,
     getSingleReview,
     createReview,
+    updateReview,
+    deleteReview,
 } = require('../controllers/review');
 
 // Import models
@@ -27,6 +29,10 @@ router
     )
     .post(protect, authorize('user', 'admin'), createReview);
 
-router.route('/:id').get(getSingleReview);
+router
+    .route('/:id')
+    .get(getSingleReview)
+    .put(protect, authorize('user', 'admin'), updateReview)
+    .delete(protect, authorize('user', 'admin'), deleteReview);
 
 module.exports = router;
