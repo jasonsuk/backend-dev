@@ -2,11 +2,17 @@ const express = require('express');
 const path = require('path');
 const dotenv = require('dotenv'); // process.env - environment variable
 const fileupload = require('express-fileupload');
-const cookieParser = require('cookie-parser');
 const morgan = require('morgan'); // logger middleware
 const colors = require('colors'); // style console log (https://github.com/marak/colors.js/)
-const errorHandler = require('./middleware/errorHandler');
+const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
+const cors = require('cors');
+
+const errorHandler = require('./middleware/errorHandler');
 
 const connectDB = require('./config/db');
 
@@ -45,6 +51,25 @@ app.use(cookieParser());
 
 // Sanitize data (prevent noSQL injection)
 app.use(mongoSanitize());
+
+// Security header
+app.use(helmet());
+
+// Prevent xss attack
+app.use(xss());
+
+// Base rate-limiting
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Protect against HTTP parameter pollution attacks
+app.use(hpp());
+
+// Enable CORS
+app.use(cors());
 
 // Access files on browsers - static route to public folder
 app.use(express.static(path.join(__dirname, '/public')));
