@@ -53,9 +53,10 @@ app.use(cookieParser());
 app.use(mongoSanitize());
 
 // Security header
-app.use(helmet());
+// The option helps to avoid an error during documentation
+app.use(helmet({ contentSecurityPolicy: false }));
 
-// Prevent xss attack
+// Prevent cross site scripting (xss) attack
 app.use(xss());
 
 // Base rate-limiting
